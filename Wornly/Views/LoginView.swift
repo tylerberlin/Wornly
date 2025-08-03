@@ -1,5 +1,6 @@
 import SwiftUI
 import AuthenticationServices
+import Combine
 
 struct LoginView: View {
     @Binding var isLoggedIn: Bool
@@ -7,6 +8,10 @@ struct LoginView: View {
     @State private var password: String = ""
     @State private var errorMessage: String?
     @State private var isPasswordVisible: Bool = false
+    @State private var stayLoggedIn: Bool = false
+    
+    private let stayLoggedInKey = "WornlyStayLoggedIn"
+    private let loggedInKey = "WornlyIsLoggedIn"
     
     var body: some View {
         VStack(spacing: 30) {
@@ -38,6 +43,11 @@ struct LoginView: View {
             .padding()
             .background(Color(.systemGray6))
             .cornerRadius(8)
+            .padding(.horizontal)
+            Toggle(isOn: $stayLoggedIn) {
+                Text("Stay logged in")
+                    .foregroundColor(.secondary)
+            }
             .padding(.horizontal)
             if let errorMessage = errorMessage {
                 Text(errorMessage)
@@ -93,6 +103,13 @@ struct LoginView: View {
             }
             Spacer()
         }
+        .onAppear {
+            if UserDefaults.standard.bool(forKey: stayLoggedInKey),
+               UserDefaults.standard.bool(forKey: loggedInKey) {
+                isLoggedIn = true
+            }
+            stayLoggedIn = UserDefaults.standard.bool(forKey: stayLoggedInKey)
+        }
     }
     
     private func handleLogin() {
@@ -100,14 +117,19 @@ struct LoginView: View {
         if email.lowercased() == "test@wornly.com" && password == "password" {
             isLoggedIn = true
             errorMessage = nil
+            UserDefaults.standard.setValue(stayLoggedIn, forKey: stayLoggedInKey)
+            UserDefaults.standard.setValue(true, forKey: loggedInKey)
         } else {
             errorMessage = "Invalid email or password."
+            UserDefaults.standard.setValue(false, forKey: loggedInKey)
         }
     }
     
     private func handleGoogleLogin() {
         // Placeholder for Google Sign-In integration
         isLoggedIn = true // Demo: just logs in for now
+        UserDefaults.standard.setValue(stayLoggedIn, forKey: stayLoggedInKey)
+        UserDefaults.standard.setValue(true, forKey: loggedInKey)
     }
 }
 
